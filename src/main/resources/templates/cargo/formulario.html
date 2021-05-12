@@ -23,6 +23,9 @@
                     <div class="form-group">
                       <label for="nome">Nome</label>
                       <input type="text" class="form-control" placeholder="Desenvolvedor(a) Front End Jr" th:field="*{nome}">
+                      <ul>
+                        <li class="text-danger" th:each="erro : ${#fields.errors('nome')}" th:text="${erro}"></li>
+                      </ul>
                     </div>
                   </div>
                 </div>
