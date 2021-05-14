@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,7 @@ import br.com.treinaweb.twprojetos.enums.UF;
 import br.com.treinaweb.twprojetos.repositorios.CargoRepositorio;
 import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
 import br.com.treinaweb.twprojetos.utils.SenhaUtils;
+import br.com.treinaweb.twprojetos.validadores.FuncionarioValidador;
 
 @Controller
 @RequestMapping("/funcionarios")
@@ -27,6 +30,11 @@ public class FuncionarioControle {
 
     @Autowired
     private CargoRepositorio cargoRepositorio;
+
+    @InitBinder("funcionario")
+    public void initBinder(WebDataBinder binder) {
+        binder.addValidators(new FuncionarioValidador());
+    }
 
     @GetMapping
     public ModelAndView home() {
