@@ -11,6 +11,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Size;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.NumberFormat;
@@ -20,32 +24,43 @@ import org.springframework.format.annotation.NumberFormat.Style;
 @Entity
 public class Projeto extends Entidade {
 
+    @NotNull
+    @Size(min = 3, max = 255)
     @Column(nullable = false)
     private String nome;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descricao;
 
+    @NotNull
+    @PastOrPresent
     @Column(name = "data_inicio", nullable = false)
     @DateTimeFormat(iso = ISO.DATE)
     private LocalDate dataInicio;
 
+    @PastOrPresent
     @Column(name = "data_fim")
     @DateTimeFormat(iso = ISO.DATE)
     private LocalDate dataFim;
 
+    @Valid
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id_fk", nullable = false)
     private Cliente cliente;
 
+    @Valid
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lider_id_fk", nullable = false)
     private Funcionario lider;
 
+    @NotNull
     @Column(nullable = false)
     @NumberFormat(style = Style.CURRENCY, pattern = "#,##0.00")
     private BigDecimal orcamento;
 
+    @NotNull
     @Column(nullable = false)
     @NumberFormat(style = Style.CURRENCY, pattern = "#,##0.00")
     private BigDecimal gastos;
@@ -129,5 +144,5 @@ public class Projeto extends Entidade {
     public void setEquipe(List<Funcionario> equipe) {
         this.equipe = equipe;
     }
-    
+
 }
