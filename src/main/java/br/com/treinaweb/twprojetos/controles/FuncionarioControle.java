@@ -33,7 +33,7 @@ public class FuncionarioControle {
 
     @InitBinder("funcionario")
     public void initBinder(WebDataBinder binder) {
-        binder.addValidators(new FuncionarioValidador());
+        binder.addValidators(new FuncionarioValidador(funcionarioRepositorio));
     }
 
     @GetMapping
