@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 import br.com.treinaweb.twprojetos.entidades.Cliente;
 import br.com.treinaweb.twprojetos.enums.UF;
 import br.com.treinaweb.twprojetos.repositorios.ClienteRepositorio;
+import br.com.treinaweb.twprojetos.validadores.ClienteValidador;
 
 @Controller
 @RequestMapping("/clientes")
@@ -22,6 +25,11 @@ public class ClienteControle {
 
     @Autowired
     private ClienteRepositorio clienteRepositorio;
+
+    @InitBinder("cliente")
+    public void initBinder(WebDataBinder binder) {
+        binder.addValidators(new ClienteValidador(clienteRepositorio));
+    }
 
     @GetMapping
     public ModelAndView home() {
