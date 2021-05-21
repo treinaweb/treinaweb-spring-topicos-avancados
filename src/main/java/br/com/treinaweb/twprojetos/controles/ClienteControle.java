@@ -4,7 +4,6 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Cliente;
 import br.com.treinaweb.twprojetos.repositorios.ClienteRepositorio;
 import br.com.treinaweb.twprojetos.validadores.ClienteValidador;
@@ -67,19 +68,25 @@ public class ClienteControle {
     }
 
     @PostMapping({"/cadastrar", "/{id}/editar"})
-    public String salvar(@Valid Cliente cliente, BindingResult resultado, ModelMap model) {
+    public String salvar(@Valid Cliente cliente, BindingResult resultado, RedirectAttributes attr) {
         if (resultado.hasErrors()) {
             return "cliente/formulario";
         }
 
         clienteRepositorio.save(cliente);
+        if (cliente.getId() == null) {
+            attr.addFlashAttribute("alert", new AlertDTO("Cliente cadastrado com sucesso!", "alert-success"));
+        } else {
+            attr.addFlashAttribute("alert", new AlertDTO("Cliente editado com sucesso!", "alert-success"));
+        }
 
         return "redirect:/clientes";
     }
 
     @GetMapping("/{id}/excluir")
-    public String excluir(@PathVariable Long id) {
+    public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
         clienteRepositorio.deleteById(id);
+        attrs.addFlashAttribute("alert", new AlertDTO("Cliente excluido com sucesso!", "alert-success"));
 
         return "redirect:/clientes";
     }
