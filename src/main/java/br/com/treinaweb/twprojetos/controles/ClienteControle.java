@@ -16,7 +16,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Cliente;
+import br.com.treinaweb.twprojetos.excecoes.ClientePossuiProjetosException;
 import br.com.treinaweb.twprojetos.repositorios.ClienteRepositorio;
+import br.com.treinaweb.twprojetos.servicos.ClienteServico;
 import br.com.treinaweb.twprojetos.validadores.ClienteValidador;
 
 @Controller
@@ -25,6 +27,9 @@ public class ClienteControle {
 
     @Autowired
     private ClienteRepositorio clienteRepositorio;
+
+    @Autowired
+    private ClienteServico clienteServico;
 
     @InitBinder("cliente")
     public void initBinder(WebDataBinder binder) {
@@ -35,7 +40,7 @@ public class ClienteControle {
     public ModelAndView home() {
         ModelAndView modelAndView = new ModelAndView("cliente/home");
 
-        modelAndView.addObject("clientes", clienteRepositorio.findAll());
+        modelAndView.addObject("clientes", clienteServico.buscarTodos());
 
         return modelAndView;
     }
@@ -44,7 +49,7 @@ public class ClienteControle {
     public ModelAndView detalhes(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("cliente/detalhes");
 
-        modelAndView.addObject("cliente", clienteRepositorio.getOne(id));
+        modelAndView.addObject("cliente", clienteServico.buscarPorId(id));
 
         return modelAndView;
     }
@@ -62,21 +67,22 @@ public class ClienteControle {
     public ModelAndView editar(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("cliente/formulario");
 
-        modelAndView.addObject("cliente", clienteRepositorio.getOne(id));
+        modelAndView.addObject("cliente", clienteServico.buscarPorId(id));
 
         return modelAndView;
     }
 
     @PostMapping({"/cadastrar", "/{id}/editar"})
-    public String salvar(@Valid Cliente cliente, BindingResult resultado, RedirectAttributes attr) {
+    public String salvar(@Valid Cliente cliente, BindingResult resultado, RedirectAttributes attr, @PathVariable(required = false) Long id) {
         if (resultado.hasErrors()) {
             return "cliente/formulario";
         }
 
-        clienteRepositorio.save(cliente);
         if (cliente.getId() == null) {
+            clienteServico.cadastrar(cliente);
             attr.addFlashAttribute("alert", new AlertDTO("Cliente cadastrado com sucesso!", "alert-success"));
         } else {
+            clienteServico.atualizar(cliente, id);
             attr.addFlashAttribute("alert", new AlertDTO("Cliente editado com sucesso!", "alert-success"));
         }
 
@@ -85,8 +91,12 @@ public class ClienteControle {
 
     @GetMapping("/{id}/excluir")
     public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
-        clienteRepositorio.deleteById(id);
-        attrs.addFlashAttribute("alert", new AlertDTO("Cliente excluido com sucesso!", "alert-success"));
+        try {
+            clienteServico.excluirPorId(id);
+            attrs.addFlashAttribute("alert", new AlertDTO("Cliente excluido com sucesso!", "alert-success"));
+        } catch (ClientePossuiProjetosException e) {
+            attrs.addFlashAttribute("alert", new AlertDTO("Cliente não pode ser excluido, pois possui projeto(s) relacionado(s)!", "alert-danger"));
+        }
 
         return "redirect:/clientes";
     }
