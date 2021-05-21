@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import br.com.treinaweb.twprojetos.entidades.Cargo;
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
 
 public interface FuncionarioRepositorio extends JpaRepository<Funcionario, Long> {
@@ -27,5 +28,7 @@ public interface FuncionarioRepositorio extends JpaRepository<Funcionario, Long>
     Optional<Funcionario> findByEmail(String email);
 
     Optional<Funcionario> findByCpf(String cpf);
+
+    List<Funcionario> findByCargo(Cargo cargo);
 
 }
