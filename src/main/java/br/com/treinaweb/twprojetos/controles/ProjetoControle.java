@@ -15,28 +15,28 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Projeto;
-import br.com.treinaweb.twprojetos.repositorios.ClienteRepositorio;
-import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
-import br.com.treinaweb.twprojetos.repositorios.ProjetoRepositorio;
+import br.com.treinaweb.twprojetos.servicos.ClienteServico;
+import br.com.treinaweb.twprojetos.servicos.FuncionarioServico;
+import br.com.treinaweb.twprojetos.servicos.ProjetoServico;
 
 @Controller
 @RequestMapping("/projetos")
 public class ProjetoControle {
 
     @Autowired
-    private ProjetoRepositorio projetoRepositorio;
+    private ProjetoServico projetoServico;
 
     @Autowired
-    private FuncionarioRepositorio funcionarioRepositorio;
+    private ClienteServico clienteServico;
 
     @Autowired
-    private ClienteRepositorio clienteRepositorio;
+    private FuncionarioServico funcionarioServico;
 
     @GetMapping
     public ModelAndView home() {
         ModelAndView modelAndView = new ModelAndView("projeto/home");
 
-        modelAndView.addObject("projetos", projetoRepositorio.findAll());
+        modelAndView.addObject("projetos", projetoServico.buscarTodos());
 
         return modelAndView;
     }
@@ -45,7 +45,7 @@ public class ProjetoControle {
     public ModelAndView detalhes(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("projeto/detalhes");
 
-        modelAndView.addObject("projeto", projetoRepositorio.getOne(id));
+        modelAndView.addObject("projeto", projetoServico.buscarPorId(id));
 
         return modelAndView;
     }
@@ -55,9 +55,7 @@ public class ProjetoControle {
         ModelAndView modelAndView = new ModelAndView("projeto/formulario");
 
         modelAndView.addObject("projeto", new Projeto());
-        modelAndView.addObject("clientes", clienteRepositorio.findAll());
-        modelAndView.addObject("lideres", funcionarioRepositorio.findByCargoNome("Gerente"));
-        modelAndView.addObject("funcionarios", funcionarioRepositorio.findByCargoNomeNot("Gerente"));
+        popularFormulario(modelAndView);
 
         return modelAndView;
     }
@@ -66,28 +64,25 @@ public class ProjetoControle {
     public ModelAndView editar(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("projeto/formulario");
 
-        modelAndView.addObject("projeto", projetoRepositorio.getOne(id));
-        modelAndView.addObject("clientes", clienteRepositorio.findAll());
-        modelAndView.addObject("lideres", funcionarioRepositorio.findByCargoNome("Gerente"));
-        modelAndView.addObject("funcionarios", funcionarioRepositorio.findByCargoNomeNot("Gerente"));
+        modelAndView.addObject("projeto", projetoServico.buscarPorId(id));
+        popularFormulario(modelAndView);
 
         return modelAndView;
     }
 
     @PostMapping({"/cadastrar", "/{id}/editar"})
-    public String salvar(@Valid Projeto projeto, BindingResult resultado, ModelMap model, RedirectAttributes attrs) {
+    public String salvar(@Valid Projeto projeto, BindingResult resultado, ModelMap model, RedirectAttributes attrs, @PathVariable(required = false) Long id) {
         if (resultado.hasErrors()) {
-            model.addAttribute("clientes", clienteRepositorio.findAll());
-            model.addAttribute("lideres", funcionarioRepositorio.findByCargoNome("Gerente"));
-            model.addAttribute("funcionarios", funcionarioRepositorio.findByCargoNomeNot("Gerente"));
+            popularFormulario(model);
 
             return "projeto/formulario";
         }
 
-        projetoRepositorio.save(projeto);
         if (projeto.getId() == null) {
+            projetoServico.cadastrar(projeto);
             attrs.addFlashAttribute("alert", new AlertDTO("Projeto cadastrado com sucesso!", "alert-success"));
         } else {
+            projetoServico.atualizar(projeto, id);
             attrs.addFlashAttribute("alert", new AlertDTO("Projeto editado com sucesso!", "alert-success"));
         }
 
@@ -96,10 +91,22 @@ public class ProjetoControle {
 
     @GetMapping("/{id}/excluir")
     public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
-        projetoRepositorio.deleteById(id);
+        projetoServico.excluirPorId(id);
         attrs.addFlashAttribute("alert", new AlertDTO("Projeto excluido com sucesso!", "alert-success"));
 
         return "redirect:/projetos";
+    }
+
+    private void popularFormulario(ModelAndView modelAndView) {
+        modelAndView.addObject("clientes", clienteServico.buscarTodos());
+        modelAndView.addObject("lideres", funcionarioServico.buscarLideres());
+        modelAndView.addObject("funcionarios", funcionarioServico.buscarEquipe());
+    }
+
+    private void popularFormulario(ModelMap model) {
+        model.addAttribute("clientes", clienteServico.buscarTodos());
+        model.addAttribute("lideres", funcionarioServico.buscarLideres());
+        model.addAttribute("funcionarios", funcionarioServico.buscarEquipe());
     }
 
 }
