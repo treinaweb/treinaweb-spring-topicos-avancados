@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.dto.AlterarSenhaDTO;
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
 import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
@@ -36,13 +38,17 @@ public class UsuarioControle {
     }
 
     @PostMapping("/alterar-senha")
-    public String alterarSenha(AlterarSenhaDTO form, Principal principal) {
+    public String alterarSenha(AlterarSenhaDTO form, Principal principal, RedirectAttributes attrs) {
         Funcionario usuario = funcionarioRepositorio.findByEmail(principal.getName()).get();
 
         if (SenhaUtils.matches(form.getSenhaAtual(), usuario.getSenha())) {
             usuario.setSenha(SenhaUtils.encode(form.getNovaSenha()));
 
             funcionarioRepositorio.save(usuario);
+
+            attrs.addFlashAttribute("alert", new AlertDTO("Senha alterada com sucesso!", "alert-success"));
+        } else {
+            attrs.addFlashAttribute("alert", new AlertDTO("Senha atual está incorreta!", "alert-danger"));
         }
 
         return "redirect:/perfil";

@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
 import br.com.treinaweb.twprojetos.repositorios.CargoRepositorio;
 import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
@@ -74,7 +76,7 @@ public class FuncionarioControle {
     }
 
     @PostMapping("/cadastrar")
-    public String cadastrar(@Valid Funcionario funcionario, BindingResult resultado, ModelMap model) {
+    public String cadastrar(@Valid Funcionario funcionario, BindingResult resultado, ModelMap model, RedirectAttributes attrs) {
         if (resultado.hasErrors()) {
             model.addAttribute("cargos", cargoRepositorio.findAll());
 
@@ -85,12 +87,13 @@ public class FuncionarioControle {
 
         funcionario.setSenha(senhaEncriptada);
         funcionarioRepositorio.save(funcionario);
+        attrs.addFlashAttribute("alert", new AlertDTO("Funcionario cadastrado com sucesso!", "alert-success"));
 
         return "redirect:/funcionarios";
     }
 
     @PostMapping("/{id}/editar")
-    public String editar(@Valid Funcionario funcionario, BindingResult resultado, @PathVariable Long id, ModelMap model) {
+    public String editar(@Valid Funcionario funcionario, BindingResult resultado, @PathVariable Long id, ModelMap model, RedirectAttributes attrs) {
         if (resultado.hasErrors()) {
             model.addAttribute("cargos", cargoRepositorio.findAll());
 
@@ -101,13 +104,15 @@ public class FuncionarioControle {
         funcionario.setSenha(senhaAtual);
 
         funcionarioRepositorio.save(funcionario);
+        attrs.addFlashAttribute("alert", new AlertDTO("Funcionario editado com sucesso!", "alert-success"));
 
         return "redirect:/funcionarios";
     }
 
     @GetMapping("/{id}/excluir")
-    public String excluir(@PathVariable Long id) {
+    public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
         funcionarioRepositorio.deleteById(id);
+        attrs.addFlashAttribute("alert", new AlertDTO("Funcionario excluido com sucesso!", "alert-success"));
 
         return "redirect:/funcionarios";
     }
