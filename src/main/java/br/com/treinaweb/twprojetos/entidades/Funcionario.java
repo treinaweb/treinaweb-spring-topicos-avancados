@@ -37,7 +37,7 @@ public class Funcionario extends Pessoa {
     @JoinColumn(name = "cargo_id_fk", nullable = false)
     private Cargo cargo;
 
-    @ManyToMany(mappedBy = "equipe", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "equipe", fetch = FetchType.EAGER)
     private List<Projeto> projetos;
 
     @Size(min = 5, max = 255)

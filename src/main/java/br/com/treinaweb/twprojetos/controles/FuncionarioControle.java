@@ -17,9 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
-import br.com.treinaweb.twprojetos.repositorios.CargoRepositorio;
+import br.com.treinaweb.twprojetos.excecoes.FuncionarioEhLiderDeProjeto;
 import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
-import br.com.treinaweb.twprojetos.utils.SenhaUtils;
+import br.com.treinaweb.twprojetos.servicos.CargoServico;
+import br.com.treinaweb.twprojetos.servicos.FuncionarioServico;
 import br.com.treinaweb.twprojetos.validadores.FuncionarioValidador;
 
 @Controller
@@ -30,7 +31,10 @@ public class FuncionarioControle {
     private FuncionarioRepositorio funcionarioRepositorio;
 
     @Autowired
-    private CargoRepositorio cargoRepositorio;
+    private CargoServico cargoServico;
+
+    @Autowired
+    private FuncionarioServico funcionarioServico;
 
     @InitBinder("funcionario")
     public void initBinder(WebDataBinder binder) {
@@ -41,7 +45,7 @@ public class FuncionarioControle {
     public ModelAndView home() {
         ModelAndView modelAndView = new ModelAndView("funcionario/home");
 
-        modelAndView.addObject("funcionarios", funcionarioRepositorio.findAll());
+        modelAndView.addObject("funcionarios", funcionarioServico.buscarTodos());
 
         return modelAndView;
     }
@@ -50,7 +54,7 @@ public class FuncionarioControle {
     public ModelAndView detalhes(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("funcionario/detalhes");
 
-        modelAndView.addObject("funcionario", funcionarioRepositorio.getOne(id));
+        modelAndView.addObject("funcionario", funcionarioServico.buscarPorId(id));
 
         return modelAndView;
     }
@@ -60,7 +64,7 @@ public class FuncionarioControle {
         ModelAndView modelAndView = new ModelAndView("funcionario/formulario");
 
         modelAndView.addObject("funcionario", new Funcionario());
-        modelAndView.addObject("cargos", cargoRepositorio.findAll());
+        modelAndView.addObject("cargos", cargoServico.buscarTodos());
 
         return modelAndView;
     }
@@ -69,8 +73,8 @@ public class FuncionarioControle {
     public ModelAndView editar(@PathVariable Long id) {
         ModelAndView modelAndView = new ModelAndView("funcionario/formulario");
 
-        modelAndView.addObject("funcionario", funcionarioRepositorio.getOne(id));
-        modelAndView.addObject("cargos", cargoRepositorio.findAll());
+        modelAndView.addObject("funcionario", funcionarioServico.buscarPorId(id));
+        modelAndView.addObject("cargos", cargoServico.buscarTodos());
 
         return modelAndView;
     }
@@ -78,15 +82,12 @@ public class FuncionarioControle {
     @PostMapping("/cadastrar")
     public String cadastrar(@Valid Funcionario funcionario, BindingResult resultado, ModelMap model, RedirectAttributes attrs) {
         if (resultado.hasErrors()) {
-            model.addAttribute("cargos", cargoRepositorio.findAll());
+            model.addAttribute("cargos", cargoServico.buscarTodos());
 
             return "funcionario/formulario";
         }
 
-        String senhaEncriptada = SenhaUtils.encode(funcionario.getSenha());
-
-        funcionario.setSenha(senhaEncriptada);
-        funcionarioRepositorio.save(funcionario);
+        funcionarioServico.cadastrar(funcionario);
         attrs.addFlashAttribute("alert", new AlertDTO("Funcionario cadastrado com sucesso!", "alert-success"));
 
         return "redirect:/funcionarios";
@@ -95,15 +96,12 @@ public class FuncionarioControle {
     @PostMapping("/{id}/editar")
     public String editar(@Valid Funcionario funcionario, BindingResult resultado, @PathVariable Long id, ModelMap model, RedirectAttributes attrs) {
         if (resultado.hasErrors()) {
-            model.addAttribute("cargos", cargoRepositorio.findAll());
+            model.addAttribute("cargos", cargoServico.buscarTodos());
 
             return "funcionario/formulario";
         }
 
-        String senhaAtual = funcionarioRepositorio.getOne(id).getSenha();
-        funcionario.setSenha(senhaAtual);
-
-        funcionarioRepositorio.save(funcionario);
+        funcionarioServico.atualizar(funcionario, id);
         attrs.addFlashAttribute("alert", new AlertDTO("Funcionario editado com sucesso!", "alert-success"));
 
         return "redirect:/funcionarios";
@@ -111,8 +109,12 @@ public class FuncionarioControle {
 
     @GetMapping("/{id}/excluir")
     public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
-        funcionarioRepositorio.deleteById(id);
-        attrs.addFlashAttribute("alert", new AlertDTO("Funcionario excluido com sucesso!", "alert-success"));
+        try {
+            funcionarioServico.excluirPorId(id);
+            attrs.addFlashAttribute("alert", new AlertDTO("Funcionario excluido com sucesso!", "alert-success"));
+        } catch (FuncionarioEhLiderDeProjeto e) {
+            attrs.addFlashAttribute("alert", new AlertDTO("Funcionario não pode ser excluido, pois é lider de algum projeto!", "alert-danger"));
+        }
 
         return "redirect:/funcionarios";
     }
