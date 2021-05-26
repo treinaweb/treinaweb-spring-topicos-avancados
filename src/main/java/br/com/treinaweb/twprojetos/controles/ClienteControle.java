@@ -17,7 +17,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Cliente;
 import br.com.treinaweb.twprojetos.excecoes.ClientePossuiProjetosException;
-import br.com.treinaweb.twprojetos.repositorios.ClienteRepositorio;
 import br.com.treinaweb.twprojetos.servicos.ClienteServico;
 import br.com.treinaweb.twprojetos.validadores.ClienteValidador;
 
@@ -26,14 +25,14 @@ import br.com.treinaweb.twprojetos.validadores.ClienteValidador;
 public class ClienteControle {
 
     @Autowired
-    private ClienteRepositorio clienteRepositorio;
+    private ClienteServico clienteServico;
 
     @Autowired
-    private ClienteServico clienteServico;
+    private ClienteValidador clienteValidador;
 
     @InitBinder("cliente")
     public void initBinder(WebDataBinder binder) {
-        binder.addValidators(new ClienteValidador(clienteRepositorio));
+        binder.addValidators(clienteValidador);
     }
 
     @GetMapping

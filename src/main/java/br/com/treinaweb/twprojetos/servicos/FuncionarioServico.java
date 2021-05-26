@@ -3,6 +3,7 @@ package br.com.treinaweb.twprojetos.servicos;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
@@ -11,7 +12,6 @@ import br.com.treinaweb.twprojetos.excecoes.FuncionarioEhLiderDeProjeto;
 import br.com.treinaweb.twprojetos.excecoes.FuncionarioNaoEncontradoException;
 import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
 import br.com.treinaweb.twprojetos.repositorios.ProjetoRepositorio;
-import br.com.treinaweb.twprojetos.utils.SenhaUtils;
 
 @Service
 public class FuncionarioServico {
@@ -21,6 +21,9 @@ public class FuncionarioServico {
 
     @Autowired
     private ProjetoRepositorio projetoRepositorio;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<Funcionario> buscarTodos() {
         return funcionarioRepositorio.findAll();
@@ -40,7 +43,7 @@ public class FuncionarioServico {
     }
 
     public Funcionario cadastrar(Funcionario funcionario) {
-        String senhaEncriptada = SenhaUtils.encode(funcionario.getSenha());
+        String senhaEncriptada = passwordEncoder.encode(funcionario.getSenha());
 
         funcionario.setSenha(senhaEncriptada);
 

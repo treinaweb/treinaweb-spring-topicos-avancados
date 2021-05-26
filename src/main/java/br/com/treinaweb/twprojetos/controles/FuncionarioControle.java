@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.treinaweb.twprojetos.dto.AlertDTO;
 import br.com.treinaweb.twprojetos.entidades.Funcionario;
 import br.com.treinaweb.twprojetos.excecoes.FuncionarioEhLiderDeProjeto;
-import br.com.treinaweb.twprojetos.repositorios.FuncionarioRepositorio;
 import br.com.treinaweb.twprojetos.servicos.CargoServico;
 import br.com.treinaweb.twprojetos.servicos.FuncionarioServico;
 import br.com.treinaweb.twprojetos.validadores.FuncionarioValidador;
@@ -28,17 +27,17 @@ import br.com.treinaweb.twprojetos.validadores.FuncionarioValidador;
 public class FuncionarioControle {
 
     @Autowired
-    private FuncionarioRepositorio funcionarioRepositorio;
-
-    @Autowired
     private CargoServico cargoServico;
 
     @Autowired
     private FuncionarioServico funcionarioServico;
 
+    @Autowired
+    private FuncionarioValidador funcionarioValidador;
+
     @InitBinder("funcionario")
     public void initBinder(WebDataBinder binder) {
-        binder.addValidators(new FuncionarioValidador(funcionarioRepositorio));
+        binder.addValidators(funcionarioValidador);
     }
 
     @GetMapping
